@@ -1,0 +1,451 @@
+---
+title: "Soybean Analysis: the trails of 4 trials"
+output: github_document
+---
+
+
+```{r load packages, echo = FALSE, include=FALSE}
+library(ggplot2)
+library(dplyr)
+library(ggpubr)
+```
+
+
+### Activities
+1. Create a new Rstudio Project
+2. Create and save a new analysis.Rmd file
+3. Open the analysis.Rmd file and start working on it
+
+#### 4. Import the data from a google sheet (library gsheet). Give a name to the dataframe object (https://docs.google.com/spreadsheets/d/16BdPdimy6GYsrkahFiEM_y5Hy13D3psKfGJayBjVdNw/edit?usp=sharing )
+  
+```{r import, echo = FALSE}
+#install.packages("gsheet") #install the package 'gsheet'
+#library(gsheet) #load the gsheet package
+#obj <- 'https://docs.google.com/spreadsheets/d/16BdPdimy6GYsrkahFiEM_y5Hy13D3psKfGJayBjVdNw/edit?usp=sharing'
+#data <- read.csv(text=gsheet2text(obj, format='csv'), stringsAsFactors=FALSE)
+```
+
+## 5. Check the structure of the data set (glimpse())
+```{r glimpse, echo=FALSE}
+glimpse(data)
+```
+
+## 6. Save the data.frame as data.csv in the project directory
+```{r save}
+write.csv(data,'data.csv')
+```
+
+## 7. Open the data in the data.csv file and assign to a new dataframe
+```{r df}
+soybean <- data.frame(read.csv("data.csv", header = T))
+head(soybean)
+```
+
+## 8. Start exploring the data. First, subset the trials and create four different dataframes, one for each trial (there are four trials)
+
+The Soybean data set is subset into 4 different data frames by trials.
+```{r subset, echo= FALSE}
+levels(as.factor(soybean$study))# to distinguish the levels in trials
+soybean$block <- as.factor(soybean$block) # convert to factor
+soybean$treat <- as.factor(soybean$treat) # convert to factor
+str(soybean)
+# Study 424 = trial 1
+trl1 <- soybean[soybean$study == 424, ]
+
+# Study 425 = trail 2
+trl2 <- soybean[soybean$study == 425, ]
+
+# Study 426 = trail 3
+trl3 <- soybean[soybean$study == 426, ]
+
+# Study 427 = trial 4
+trl4 <- soybean[soybean$study == 427, ]
+```
+
+
+## 9. Produce plots to visualize the response variables
+We have two response variables namely; yield and severity.
+We would present the yield and severity response variables using bar charts.
+
+```{r sdfxn, echo=FALSE, include=FALSE}
+## A function is written to enable the calculation of mean and the standard deviation for each treat in the trials. The standard deviation of the mean will be used as error bars.
+
+#+++++++++++++++++++++++++
+# Function to calculate the mean and the standard deviation
+  # for each group(treat)
+#+++++++++++++++++++++++++
+# data : a data frame
+# varname : the name of a column containing the variable
+  #to be summariezed 
+# groupnames : vector of column names to be used as
+  # grouping variables
+data_summary <- function(data, varname, groupnames){
+  require(plyr)
+  summary_func <- function(x, col){
+    c(mean = mean(x[[col]], na.rm=TRUE),
+      sd = sd(x[[col]], na.rm=TRUE))
+  }
+  data_sum<-ddply(data, groupnames, .fun=summary_func,
+                  varname)
+  data_sum <- rename(data_sum, c("mean" = varname))
+ return(data_sum)
+}
+```
+
+### Data Visualization for Trial 1
+The table shows the soybean mean yield, standard deviation by treatment for trial 1. The mean of the blocks is estimated as the yield for each treatment.
+
+```{r yldtrl1, echo=FALSE}
+yldtrl1 <- data_summary(trl1, varname="yld", 
+                    groupnames=c("treat"))
+yldtrl1
+```
+From the above table, Soybean treated with treatments, Ativum, Fusao, FOX have the highest average yield; 3501, 3445.50 and 3405.75 respectively. 
+
+
+
+The table shows the soybean mean severity, standard deviation by treatment for the trial 1. The mean of the blocks is estimated as the yield for each treatment. 
+```{r sevtrl1, echo = FALSE}
+sevtrl1 <- data_summary(trl1, varname = "sev",
+                        groupnames = c("treat"))
+sevtrl1
+```
+
+From the above table, the control, and Soybean treated with treatments, Ativum, Aproach Prima have the highest average severity; 65.50, 39.50, 38.25 respectively.
+
+```{r dviz1, echo=FALSE}
+# Standard deviation of the mean as error bar
+plottrl1 <- ggplot(yldtrl1, aes(x=treat, y=yld, fill=treat)) + 
+   geom_bar(stat="identity", position=position_dodge()) +
+  geom_errorbar(aes(ymin=yld-sd, ymax=yld+sd), width=.2,
+                 position=position_dodge(.9))
+
+plottrl1 + scale_fill_brewer(palette="Paired") + theme_minimal() + ggtitle("Soybean yields by treatments")
+```
+
+From the above chart, Soybean treated with treatments, Ativum, Fusao, FOX have the highest average yield; 3501, 3445.50 and 3405.75 respectively. 
+
+
+```{r dviz1b, echo=FALSE}
+plot2trl1 <- ggplot(sevtrl1, aes(x=treat, y=sev, fill=treat)) + 
+   geom_bar(stat="identity", position=position_dodge()) +
+  geom_errorbar(aes(ymin=sev-sd, ymax=sev+sd), width=.2,
+                 position=position_dodge(.9))
+  
+plot2trl1 + scale_fill_brewer(palette="Paired") + theme_minimal() + ggtitle("Soybean severity by treatments (trial 1)")
+```
+The chart above shows that the control, and Soybean treated with treatments, Ativum, Aproach Prima have the highest average severity; 65.50, 39.50, 38.25 respectively.
+
+### Data visualization for trial 2
+
+```{r yldtrl2, echo = FALSE}
+yldtrl2 <- data_summary(trl2, varname="yld", 
+                    groupnames=c("treat"))
+yldtrl2
+```
+From the above table, Soybean treated with treatments, Vessarya, FOX, Aproach Prima have the highest average yield; 4232, 4147.25, and 4114.25 respectively.
+
+```{r sevtrl2, echo=FALSE}
+sevtrl2 <- data_summary(trl2, varname = "sev",
+                        groupnames = c("treat"))
+sevtrl2
+```
+
+The above table shows that Control(38.25) and treatments; Elatus(7.25) and Fusao(6.75) had the highest severity.
+
+```{r dviz2, echo=FALSE}
+plottrl2 <- ggplot(yldtrl2, aes(x=treat, y=yld, fill=treat)) + 
+   geom_bar(stat="identity", position=position_dodge()) +
+  geom_errorbar(aes(ymin=yld-sd, ymax=yld+sd), width=.2,
+                 position=position_dodge(.9))
+  
+plottrl2 + scale_fill_brewer(palette="Paired") + theme_minimal() + ggtitle("Soybean yields by treatments (trial 2)") 
+```
+From the above table, Soybean treated with treatments, Vessarya, FOX, Aproach Prima have the highest average yield; 4232, 4147.25, and 4114.25 respectively.
+
+```{r dviz2b, echo = FALSE}
+plot2trl2 <- ggplot(sevtrl2, aes(x=treat, y=sev, fill=treat)) + 
+   geom_bar(stat="identity", position=position_dodge()) +
+  geom_errorbar(aes(ymin=sev-sd, ymax=sev+sd), width=.2,
+                 position=position_dodge(.9))
+  
+plot2trl2 + scale_fill_brewer(palette="Paired") + theme_minimal() + ggtitle("Soybean severity by treatments (trial 2)")
+```
+The above table shows that Control(38.25) and treatments; Elatus(7.25) and Fusao(6.75) had the highest severity.
+
+### Data visualization for trial 3
+
+```{r yldtrl3, echo = FALSE}
+yldtrl3 <- data_summary(trl3, varname="yld", 
+                    groupnames=c("treat"))
+yldtrl3
+```
+The above table shows that treatments; Vessarya(3790.25), Aproach Prima(3720.00) and Ativum (3719.50) had the highest yield.
+
+
+
+```{r sevtrl3, echo=FALSE}
+sevtrl3 <- data_summary(trl3, varname = "sev",
+                        groupnames = c("treat"))
+sevtrl3
+```
+
+The above table shows that Control(67.50) and treatments; Elatus(43.75) and Aproach Prima(26.50) had the highest severity.
+
+
+```{r dviz3, echo=FALSE}
+plottrl3 <- ggplot(yldtrl3, aes(x=treat, y=yld, fill=treat)) + 
+   geom_bar(stat="identity", position=position_dodge()) +
+  geom_errorbar(aes(ymin=yld-sd, ymax=yld+sd), width=.2,
+                 position=position_dodge(.9))
+  
+plottrl3 + scale_fill_brewer(palette="Paired") + theme_minimal() + ggtitle("Soybean yields by treatments (trial 3)") 
+```
+
+The above chart shows that treatments; Vessarya(3790.25), Aproach Prima(3720.00) and Ativum (3719.50) had the highest yield.
+
+
+```{r dviz3b, echo=FALSE}
+plot2trl3 <- ggplot(sevtrl3, aes(x=treat, y=sev, fill=treat)) + 
+   geom_bar(stat="identity", position=position_dodge()) +
+  geom_errorbar(aes(ymin=sev-sd, ymax=sev+sd), width=.2,
+                 position=position_dodge(.9))
+  
+plot2trl3 + scale_fill_brewer(palette="Paired") + theme_minimal() + ggtitle("Soybean severity by treatments (trial 3)")
+```
+
+
+The above chart shows that Control(67.50) and treatments; Elatus(43.75) and Aproach Prima(26.50) had the highest severity.
+
+
+### Data visualization for trial 4
+
+```{r yldtrl4, echo = FALSE}
+yldtrl4 <- data_summary(trl4, varname="yld", 
+                    groupnames=c("treat"))
+yldtrl4
+```
+
+The above table shows that treatments; FOX(4644.25), Ativum (4199.25) and Ativum (4155.25) had the highest yield in trial 4.
+
+
+
+```{r sevtrl4, echo=FALSE}
+sevtrl4 <- data_summary(trl4, varname = "sev",
+                        groupnames = c("treat"))
+sevtrl4
+```
+
+The above table shows that Control(93.75) and treatments; Elatus(68.75) and Vessarya(47.00) had the highest severity.
+
+```{r dviz4, echo=FALSE}
+plottrl4 <- ggplot(yldtrl4, aes(x=treat, y=yld, fill=treat)) + 
+   geom_bar(stat="identity", position=position_dodge()) +
+  geom_errorbar(aes(ymin=yld-sd, ymax=yld+sd), width=.2,
+                 position=position_dodge(.9))
+  
+plottrl4 + scale_fill_brewer(palette="Paired") + theme_minimal() + ggtitle("Soybean yields by treatments (trial 4)") 
+```
+
+The above table shows that treatments; FOX(4644.25), Ativum (4199.25) and Ativum (4155.25) had the highest yield in trial 4.
+
+
+
+```{r dviz4b, echo = FALSE}
+plot2trl4 <- ggplot(sevtrl4, aes(x=treat, y=sev, fill=treat)) + 
+   geom_bar(stat="identity", position=position_dodge()) +
+  geom_errorbar(aes(ymin=sev-sd, ymax=sev+sd), width=.2,
+                 position=position_dodge(.9))
+  
+plot2trl4 + scale_fill_brewer(palette="Paired") + theme_minimal() + ggtitle("Soybean severity by treatments (trial 4)")
+```
+
+The above chart shows that Control(93.75) and treatments; Elatus(68.75) and Vessarya(47.00) had the highest severity.
+
+## 10. Test hypotheses on the apparent effects for each trial
+
+The one-way analysis of variance (ANOVA), also known as one-factor ANOVA, is an extension of independent two-samples t-test for comparing means in a situation where there are more than two groups. In one-way ANOVA, the data is organized into several groups base on one single grouping variable (also called factor variable). This tutorial describes the basic principle of the one-way ANOVA test and provides practical anova test examples in R software.
+
+The one-way analysis of variance (ANOVA), also known as one-factor ANOVA, is an extension of independent two-samples t-test for comparing means in a situation where there are more than two groups. In one-way ANOVA, the data is organized into several groups base on one single grouping variable (also called factor variable). This tutorial describes the basic principle of the one-way ANOVA test and provides practical anova test examples in R software.
+
+A one-way anova test will be carried out as it is used to evaluate simultaneously the effect of two grouping variables (A and B) on a response variable. In this case, the grouping variables are block and treats while, the response variables are yield and severity. 
+
+### Hypothesis testing for Trial 1
+
+#### Hypothesis testing for yield (Trial 1)
+
+Null hypothesis: the soybean yield means of the different treatments are the same.
+
+Alternative hypothesis: At least one treatment means of the soybean yield is not equal to the others.
+
+```{r yldhyp1, echo=FALSE}
+lm(yld ~ treat, trl1)
+anova(lm(yld ~ treat, trl1))
+```
+
+As the p-value is less than the significance level 0.01, we can conclude that there are significant differences between the groups highlighted with “**" in the anova table.
+We will also reject the null hypothesis which states The treatments has no effects on the soybean yield.
+
+
+#### Hypothesis testing for severity (Trial 1)
+Null Hypothesis: The treatments has no effects on the soybean severity.
+
+Alternate Hypothesis: The treatments has effects on the soybean severity.
+
+```{r sevhyp1, echo=FALSE}
+lm(sev ~ treat, trl1)
+anova(lm(sev ~ treat, trl1))
+```
+
+As the p-value is less than the significance level 0.001, we can conclude that there are significant differences between the groups highlighted with “***" in the anova table.
+We will also reject the null hypothesis which states The treatments has no effects on the soybean severity.
+
+
+
+### Hypothesis testing for Trial 2
+
+#### Hypothesis testing for yield (Trial 2)
+
+Null hypothesis: the soybean yield means of the different treatments are the same.
+
+Alternative hypothesis: At least one treatment means of the soybean yield is not equal to the others.
+
+```{r yldhyp2, echo=FALSE}
+lm(yld ~ treat, trl2)
+anova(lm(yld ~ treat, trl2))
+```
+As the p-value = 0.4374 which is greater than the significance level 0.05, we can conclude that there are no significant differences between the groups highlighted with “*" in the model summary.
+we will also accept the null hypothesis; the soybean yield means of the different treatments are the same.
+
+
+
+#### Hypothesis testing for severity (Trial 2)
+Null Hypothesis: The treatments has no effects on the soybean severity.
+
+Alternate Hypothesis: The treatments has effects on the soybean severity.
+
+```{r sevhyp2, echo=FALSE}
+lm(sev ~ treat, trl2)
+anova(lm(sev ~ treat, trl2))
+```
+
+As the p-value is less than the significance level 0.001, we can conclude that there are significant differences between the groups highlighted with “***" in the anova table.
+We will also reject the null hypothesis which states The treatments has no effects on the soybean severity.
+
+
+### Hypothesis testing for Trial 3
+
+#### Hypothesis testing for yield (Trial 3)
+
+Null hypothesis: the soybean yield means of the different treatments are the same.
+
+Alternative hypothesis: At least one treatment means of the soybean yield is not equal to the others.
+
+```{r yldhyp3, echo=FALSE}
+lm(yld ~ treat, trl3)
+anova(lm(yld ~ treat, trl3))
+```
+
+As the p-value = 0.5246 which is greater than the significance level 0.05, we can conclude that there are no significant differences between the groups highlighted with “*" in the model summary.Therefore, we will also accept the null hypothesis; the soybean yield means of the different treatments are the same.
+
+
+#### Hypothesis testing for severity (Trial 3)
+Null Hypothesis: The treatments has no effects on the soybean severity.
+
+Alternate Hypothesis: The treatments has effects on the soybean severity.
+
+```{r sevhyp3, echo=FALSE}
+lm(sev ~ treat, trl3)
+anova(lm(sev ~ treat, trl3))
+```
+
+As the p-value is less than the significance level 0.001, we can conclude that there are significant differences between the groups highlighted with “***" in the anova table.
+We will also reject the null hypothesis which states The treatments has no effects on the soybean severity.
+
+
+### Hypothesis testing for Trial 4
+
+#### Hypothesis testing for yield (Trial 4)
+
+Null hypothesis: the soybean yield means of the different treatments are the same.
+
+Alternative hypothesis: At least one treatment means of the soybean yield is not equal to the others.
+
+```{r yldhyp4, echo=FALSE}
+lm(yld ~ treat, trl4)
+anova(lm(yld ~ treat, trl4))
+```
+
+As the p-value is less than the significance level 0.001, we can conclude that there are significant differences between the groups highlighted with “***" in the anova table.
+We will also reject the null hypothesis which states The treatments has no effects on the soybean yield.
+
+
+#### Hypothesis testing for severity (Trial 4)
+Null Hypothesis: The treatments has no effects on the soybean severity.
+
+Alternate Hypothesis: The treatments has effects on the soybean severity.
+
+```{r sevhyp4, echo=FALSE}
+lm(sev ~ treat, trl4)
+anova(lm(sev ~ treat, trl4))
+```
+
+As the p-value is less than the significance level 0.001, we can conclude that there are significant differences between the groups highlighted with “***" in the anova table.
+We will also reject the null hypothesis which states The treatments has no effects on the soybean severity.
+
+## 11. Check the correlation between severity and yield for each trial.
+If the p-value is < 5%, then the correlation between x and y is significant.
+
+#### Visualizing the correlation between severity and yield using a scatter plot for Trial 1
+```{r cortrl1, echo=FALSE}
+cor(x = trl1$sev, y = trl1$yld, method = c("pearson"))
+cor.test(x = trl1$sev, y = trl1$yld, method = c("pearson"))
+ggscatter(trl1, x = "sev", y = "yld", 
+          add = "reg.line", conf.int = TRUE, 
+          cor.coef = TRUE, cor.method = "pearson",
+          xlab = "Severity", ylab = "Yield")
+```
+The p-value of the test is 0.006925, which is less than the significance level alpha = 0.05. We can conclude that severity and yield are significantly correlated with a correlation coefficient of -0.49837 and p-value of 0.006925. A correlation coefficient of -0.49837 indicates a strong negative correlation : this means that every time severity increases, yield decreases. 
+
+
+
+#### Visualizing the correlation between severity and yield using a scatter plot for Trial 2
+
+```{r cortrl2, echo = FALSE}
+cor(x = trl2$sev, y = trl2$yld, method = c("pearson"))
+cor.test(x = trl2$sev, y = trl2$yld, method = c("pearson"))
+ggscatter(trl2, x = "sev", y = "yld", 
+          add = "reg.line", conf.int = TRUE, 
+          cor.coef = TRUE, cor.method = "pearson",
+          xlab = "Severity", ylab = "Yield")
+```
+The p-value of the test is 0.698, which is greater than the significance level alpha = 0.05. We can conclude that severity and yield are not significantly correlated with a correlation coefficient of -0.07672589  and p-value of 0.698. There is almost no association between the response variables yield and severity for trial 2.
+
+
+#### Visualizing the correlation between severity and yield using a scatter plot for Trial 3
+
+```{r cortrl3, echo = FALSE}
+cor(x = trl3$sev, y = trl3$yld, method = c("pearson"))
+cor.test(x = trl3$sev, y = trl3$yld, method = c("pearson"))
+ggscatter(trl3, x = "sev", y = "yld", 
+          add = "reg.line", conf.int = TRUE, 
+          cor.coef = TRUE, cor.method = "pearson",
+          xlab = "Severity", ylab = "Yield")
+```
+The p-value of the test is 0.01557, which is less than the significance level alpha = 0.05. We can conclude that severity and yield are significantly correlated with a correlation coefficient of -0.4526989 and p-value of 0.01557. A correlation coefficient of -0.4526989 indicates a strong negative correlation : this means that every time severity increases, yield decreases for trial 3. 
+
+
+
+
+#### Visualizing the correlation between severity and yield using a scatter plot for Trial 4
+```{r cortrl4, echo=FALSE}
+cor(x = trl4$sev, y = trl4$yld, method = c("pearson"))
+cor.test(x = trl4$sev, y = trl4$yld, method = c("pearson"))
+
+ggscatter(trl4, x = "sev", y = "yld", 
+          add = "reg.line", conf.int = TRUE, 
+          cor.coef = TRUE, cor.method = "pearson",
+          xlab = "Severity", ylab = "Yield")
+```
+
+The p-value of the test is 1.987e-05, which is less than the significance level alpha = 0.05. We can conclude that severity and yield are significantly correlated with a correlation coefficient of -0.713965 and p-value of 1.987e-05. A correlation coefficient of -0.4526989 indicates a strong negative correlation : this means that every time severity increases, yield decreases for trial 3. 
