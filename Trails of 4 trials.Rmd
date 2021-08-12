@@ -1,6 +1,8 @@
 ---
-title: "Soybean Analysis: the trails of 4 trials"
-output: github_document
+title: "Soybean Analysis"
+author: "Efoli Matthew"
+date: "11/08/2021"
+output: html_document
 ---
 
 
